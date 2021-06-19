@@ -34,14 +34,36 @@ class FixedFloat {
       // then parse the JSON.
       return Order.fromJson(jsonDecode(response.body));
     } else {
-      print(response.body);
-      throw new Exception("something went wrong");
+      var code = response.statusCode;
+      throw new Exception(
+          "Fixedfloat responded with non-200 status code: $code");
     }
   }
 
-  Future<Order> GetOrder(String id) {}
+  Future<Order> GetOrder(String id, String token) async {
+    var url = Uri.https(this.url, '/api/v1/getOrder');
+    var map = new Map<String, String>();
+    map['id'] = id;
+    map['token'] = token;
+    var headers = new Map<String, String>();
+    headers['X-API-KEY'] = this.apiKey;
+    headers['X-API-SIGN'] = createSig("", map);
+    var response = await http.post(url, body: map, headers: headers);
+    if (response.statusCode == 200) {
+      // If the server did return a 200 OK response,
+      // then parse the JSON.
+      return Order.fromJson(jsonDecode(response.body));
+    } else {
+      var code = response.statusCode;
+      throw new Exception(
+          "Fixedfloat responded with non-200 status code: $code");
+    }
+  }
 
   String createSig(String queryString, Map<String, String> map) {
+    if (apiSecret.isEmpty || apiKey.isEmpty) {
+      throw new Exception("Api key or api secret cannot be empty");
+    }
     var toSign = queryString;
     map.forEach((k, v) => toSign = toSign + "&" "$k=$v");
     if (toSign.length > 0 && toSign[0] == "&") {
@@ -54,12 +76,4 @@ class FixedFloat {
     var digest = hmacSha256.convert(bytes);
     return "$digest";
   }
-}
-
-void main() async {
-  var ff =
-      FixedFloat(url: "fixedfloat.com", apiKey: "key", apiSecret: "secret");
-  var order = await ff.CreateOrder(
-      "BTCLN", "BTC", "3FdGUcB7oX4bwouBu8YwX3G9VNsq7Mhuw8", "float", 0.01);
-  print(order.data.toJson());
 }

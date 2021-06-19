@@ -1,5 +1,5 @@
 class Order {
-  int code;
+  String code;
   Data data;
   List<Debug> debug;
   String msg;
@@ -7,7 +7,7 @@ class Order {
   Order({this.code, this.data, this.debug, this.msg});
 
   Order.fromJson(Map<String, dynamic> json) {
-    code = json['code'];
+    code = json['code'].toString();
     data = json['data'] != null ? new Data.fromJson(json['data']) : null;
     if (json['debug'] != null) {
       debug = new List<Debug>();
